@@ -1,56 +1,61 @@
-!DOCTYPE html
-html lang=es
-head
-    meta charset=UTF-8
-    titleCrucigrama con Premiostitle
-    style
-        body { font-family sans-serif; text-align center; background #f4f4f9; }
-        .grid { display grid; grid-template-columns repeat(10, 30px); gap 5px; justify-content center; margin-top 20px; }
-        input { width 30px; height 30px; text-align center; text-transform uppercase; font-weight bold; border 1px solid #ccc; }
-        .correct { background-color #d4edda; border-color #28a745; }
-        #ticket-container { margin-top 30px; padding 20px; display none; background #fff3cd; border 2px dashed #ffc107; border-radius 10px; display inline-block; }
-        .hidden { display none !important; }
-    style
-head
-body
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crucigrama con Premios</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 40px); gap: 5px; justify-content: center; margin-top: 20px; }
+        input { width: 40px; height: 40px; text-align: center; text-transform: uppercase; font-weight: bold; border: 2px solid #ccc; font-size: 20px; }
+        .correct { background-color: #d4edda !important; border-color: #28a745 !important; }
+        #ticket { margin-top: 30px; padding: 20px; background: #fff3cd; border: 2px dashed #ffc107; border-radius: 10px; display: inline-block; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
 
-    h1🧩 Crucigrama de Premiosh1
-    pPalabras completadas span id=count0spanp
+    <h1>🧩 Crucigrama de Premios</h1>
+    <p>Palabras completadas: <span id="count">0</span>/1</p>
+    <p><small>(Escribe "SOL" para probar el primer ticket)</small></p>
 
-    div class=grid
-        input type=text maxlength=1 data-word=word1 data-letter=S
-        input type=text maxlength=1 data-word=word1 data-letter=O
-        input type=text maxlength=1 data-word=word1 data-letter=L
-    div
+    <div class="grid">
+        <input type="text" maxlength="1" data-word="word1" data-letter="S">
+        <input type="text" maxlength="1" data-word="word1" data-letter="O">
+        <input type="text" maxlength="1" data-word="word1" data-letter="L">
+    </div>
 
-    div id=reward-area
-        div id=ticket class=hidden
-            h3¡Felicidades! 🎟️h3
-            pHas desbloqueado un cupón strongPROMO50-OFFstrongp
-        div
-    div
+    <div id="reward-area">
+        <div id="ticket" class="hidden">
+            <h3>¡Felicidades! 🎟️</h3>
+            <p>Has desbloqueado un cupón: <strong>CANJE-EXITO-2026</strong></p>
+        </div>
+    </div>
 
-    script
+    <script>
         const inputs = document.querySelectorAll('input');
         const ticket = document.getElementById('ticket');
         const countDisplay = document.getElementById('count');
-        
         let completedWords = new Set();
 
-        inputs.forEach(input = {
-            input.addEventListener('input', () = {
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
                 const wordId = input.getAttribute('data-word');
-                const sameWordInputs = document.querySelectorAll(`input[data-word=${wordId}]`);
+                const sameWordInputs = document.querySelectorAll(`input[data-word="${wordId}"]`);
                 
-                 Verificar si toda la palabra es correcta
                 let isFull = true;
-                sameWordInputs.forEach(i = {
+                let currentWord = "";
+                
+                sameWordInputs.forEach(i => {
+                    currentWord += i.value.toUpperCase();
                     if (i.value.toUpperCase() !== i.getAttribute('data-letter')) isFull = false;
                 });
 
                 if (isFull && !completedWords.has(wordId)) {
                     completedWords.add(wordId);
-                    sameWordInputs.forEach(i = i.classList.add('correct'));
+                    sameWordInputs.forEach(i => {
+                        i.classList.add('correct');
+                        i.disabled = true;
+                    });
                     updateCounter();
                 }
             });
@@ -59,13 +64,11 @@ body
         function updateCounter() {
             const count = completedWords.size;
             countDisplay.innerText = count;
-
-             Lógica Cada 3 palabras
-            if (count  0 && count % 3 === 0) {
+            // Para esta prueba, se desbloquea con la primera palabra (SOL)
+            if (count >= 1) {
                 ticket.classList.remove('hidden');
-                alert(¡Has desbloqueado un nuevo ticket!);
             }
         }
-    script
-body
-html
+    </script>
+</body>
+</html>
