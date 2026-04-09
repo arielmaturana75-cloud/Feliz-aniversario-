@@ -3,106 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crucigrama de Premios</title>
+    <title>Mi Crucigrama Pastel</title>
     <style>
-        :root { --primary: #6366f1; --bg: #0f172a; --cell: #ffffff; --text: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        .container { background: #1e293b; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        
+        :root { 
+            --bg-pastel: #ffe5ec; /* Rosa Pastel */
+            --grid-border: #ffb3c1; 
+            --cell-bg: #ffffff;
+            --accent: #fb6f92; /* Rosa Intenso */
+            --correct: #72efdd; /* Turquesa para el éxito */
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: var(--bg-pastel); 
+            color: #594157; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            margin: 0;
+        }
+
+        .container { 
+            background: rgba(255, 255, 255, 0.5); 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+            max-width: 95vw;
+        }
+
+        h1 { color: var(--accent); margin-bottom: 10px; }
+
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(20, 25px); 
-            grid-template-rows: repeat(20, 25px); 
-            gap: 1px; 
-            background: #334155; 
-            padding: 10px;
-            border-radius: 5px;
+            grid-template-columns: repeat(20, 28px); 
+            grid-template-rows: repeat(20, 28px); 
+            gap: 2px; 
+            background-color: var(--grid-border); 
+            padding: 4px;
+            border-radius: 8px;
             overflow: auto;
+            margin: auto;
         }
 
         .cell {
-            width: 25px; height: 25px; background: var(--cell);
-            border: none; text-align: center; text-transform: uppercase;
-            font-weight: bold; font-size: 14px; color: #1e293b; outline: none;
+            width: 28px; height: 28px; 
+            background: var(--cell-bg);
+            border: 1px solid #fce1e4; 
+            text-align: center; text-transform: uppercase;
+            font-weight: bold; font-size: 15px; 
+            color: #594157; outline: none;
+            border-radius: 3px;
+            transition: all 0.2s;
         }
 
-        .cell.correct { background: #22c55e !important; color: white; }
-        .cell:focus { background: #fbbf24; }
-        .black { background: transparent !important; }
+        .cell.correct { background: var(--correct) !important; color: #006d77; border-color: #72efdd; }
+        .cell:focus { background: #ffc2d1; border-color: var(--accent); }
+        .black { background: transparent !important; border: none !important; }
 
-        #reward {
-            margin-top: 20px; padding: 15px; border: 2px dashed #fbbf24;
-            background: rgba(251, 191, 36, 0.1); border-radius: 10px;
+        #reward-box {
+            margin-top: 25px; padding: 15px; 
+            border: 3px dashed var(--accent);
+            background: #fff; border-radius: 15px;
             display: none; text-align: center;
+            color: var(--accent);
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>🧩 Crucigrama Interactivo</h1>
-        <p>Palabras completadas: <span id="count">0</span> / 13</p>
+        <h1>✨ Crucigrama Personalizado</h1>
+        <p>Palabras completadas: <span id="count">0</span> / 12</p>
 
         <div id="crossword" class="grid"></div>
 
-        <div id="reward">
-            <h3 style="color:#fbbf24; margin:0;">🎟️ ¡TICKET DESBLOQUEADO!</h3>
-            <p id="ticket-msg" style="margin:5px 0;"></p>
+        <div id="reward-box">
+            <p style="font-size: 1.2rem; margin: 0;">💝 ¡NUEVO TICKET!</p>
+            <p id="ticket-text" style="font-size: 0.9rem; margin: 5px 0;"></p>
         </div>
     </div>
 
 <script>
+    // Lista de palabras optimizada (sin repeticiones)
     const wordData = [
-        { x: 2, y: 1, d: 'v', w: "PAICAVI" },
+        { x: 3, y: 1, d: 'v', w: "PAICAVI" },
         { x: 1, y: 3, d: 'h', w: "PEPA" },
         { x: 0, y: 5, d: 'h', w: "ISIDORACOUSINHO" },
         { x: 13, y: 1, d: 'v', w: "PLAYABLANCA" },
-        { x: 8, y: 4, d: 'v', w: "MARGARITA" },
+        { x: 9, y: 3, d: 'v', w: "MARGARITA" },
         { x: 5, y: 7, d: 'h', w: "CABEZONA" },
         { x: 5, y: 7, d: 'v', w: "MONA" },
         { x: 0, y: 10, d: 'h', w: "TALLERDEINVESTIGACION" },
-        { x: 15, y: 7, d: 'v', w: "AOHARURIDE" },
-        { x: 3, y: 13, d: 'h', w: "MORTALKOMBATX" },
-        { x: 3, y: 13, d: 'v', w: "MOLINA" },
-        { x: 10, y: 12, d: 'v', w: "ENRIQUEMOLINA" },
-        { x: 17, y: 5, d: 'v', w: "REDFILM" }
-    ];
-
-    const grid = document.getElementById('crossword');
-    const cellMap = {};
-
-    // Crear malla base
-    for (let y = 0; y < 20; y++) {
-        for (let x = 0; x < 20; x++) {
-            const div = document.createElement('div');
-            div.className = 'cell black';
-            grid.appendChild(div);
-            cellMap[`${x}-${y}`] = div;
-        }
-    }
-
-    // Colocar palabras
-    wordData.forEach(data => {
-        for (let i = 0; i < data.w.length; i++) {
-            const cx = data.d === 'h' ? data.x + i : data.x;
-            const cy = data.d === 'v' ? data.y + i : data.y;
-            if (cellMap[`${cx}-${cy}`].tagName !== 'INPUT') {
-                const input = document.createElement('input');
-                input.className = 'cell';
-                input.maxLength = 1;
-                input.dataset.letter = data.w[i];
-                grid.replaceChild(input, cellMap[`${cx}-${cy}`]);
-                cellMap[`${cx}-${cy}`] = input;
-                input.addEventListener('input', checkStatus);
-            }
-        }
-    });
-
-    function checkStatus() {
-        let completed = 0;
-        wordData.forEach(data => {
-            let isCorrect = true;
-            for (let i = 0; i < data.w.length; i++) {
-                const cx = data.d === 'h' ? data.x + i : data.x;
-                const cy = data.d === '
+        { x: 16, y: 7, d: 'v', w: "AOHARURIDE" },
+        { x: 4, y: 13, d: 'h', w: "MORTALKOMBATX" },
+        { x: 10, y: 11, d: 'v', w: "ENRIQUEMOLINA" },
+        { x: 18, y: 4, d: 'v', w: "REDFIL
