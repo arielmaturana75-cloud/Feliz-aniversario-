@@ -3,135 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crucigrama Interactivo</title>
+    <title>Crucigrama de Premios</title>
     <style>
-        :root {
-            --bg: #1a1a2e;
-            --panel: #16213e;
-            --accent: #e94560;
-            --correct: #0f3460;
-            --text: #ffffff;
-        }
-
+        :root { --primary: #6366f1; --bg: #0f172a; --cell: #ffffff; --text: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; }
         
-        .header-img { width: 100%; max-width: 600px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .container { background: #1e293b; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
-        .container { background: var(--panel); padding: 30px; border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
-
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(22, 28px); 
-            grid-template-rows: repeat(22, 28px); 
-            gap: 2px; 
-            background: #0f3460;
-            padding: 5px;
+            grid-template-columns: repeat(20, 25px); 
+            grid-template-rows: repeat(20, 25px); 
+            gap: 1px; 
+            background: #334155; 
+            padding: 10px;
             border-radius: 5px;
             overflow: auto;
-            max-width: 90vw;
         }
 
         .cell {
-            width: 28px; height: 28px; background: #fff; border: none;
-            text-align: center; text-transform: uppercase; font-weight: bold;
-            font-size: 16px; color: #333; transition: 0.3s;
+            width: 25px; height: 25px; background: var(--cell);
+            border: none; text-align: center; text-transform: uppercase;
+            font-weight: bold; font-size: 14px; color: #1e293b; outline: none;
         }
 
-        .cell:focus { background: #ffd369; outline: none; }
-        .cell.correct-letter { background: #4ecca3 !important; color: white; }
+        .cell.correct { background: #22c55e !important; color: white; }
+        .cell:focus { background: #fbbf24; }
         .black { background: transparent !important; }
 
-        #reward-panel {
-            margin-top: 20px; padding: 20px; border: 2px solid var(--accent);
-            border-radius: 15px; background: rgba(233, 69, 96, 0.1);
-            display: none; animation: fadeIn 0.5s;
+        #reward {
+            margin-top: 20px; padding: 15px; border: 2px dashed #fbbf24;
+            background: rgba(251, 191, 36, 0.1); border-radius: 10px;
+            display: none; text-align: center;
         }
-
-        .reward-img { width: 150px; height: auto; margin: 10px; border-radius: 10px; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <img src="https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=1000" class="header-img" alt="Banner">
-
     <div class="container">
-        <h1>🧩 Crucigrama de Desafíos</h1>
-        <p>Palabras completadas: <span id="count">0</span> / 15</p>
+        <h1>🧩 Crucigrama Interactivo</h1>
+        <p>Palabras completadas: <span id="count">0</span> / 13</p>
 
-        <div id="grid" class="grid"></div>
+        <div id="crossword" class="grid"></div>
 
-        <div id="reward-panel">
-            <h3>🎁 ¡NUEVA RECOMPENSA!</h3>
-            <p id="reward-text"></p>
-            <img src="https://cdn-icons-png.flaticon.com/512/6941/6941697.png" class="reward-img">
+        <div id="reward">
+            <h3 style="color:#fbbf24; margin:0;">🎟️ ¡TICKET DESBLOQUEADO!</h3>
+            <p id="ticket-msg" style="margin:5px 0;"></p>
         </div>
     </div>
 
 <script>
-    const words = [
-        { x: 2, y: 1, d: 'h', w: "PEPA" },
+    const wordData = [
         { x: 2, y: 1, d: 'v', w: "PAICAVI" },
-        { x: 0, y: 4, d: 'h', w: "PARQUEISIDORA" },
-        { x: 7, y: 1, d: 'v', w: "COUSINHO" },
-        { x: 0, y: 8, d: 'h', w: "PLAYABLANCA" },
-        { x: 10, y: 5, d: 'v', w: "MARGARITA" },
-        { x: 3, y: 11, d: 'h', w: "CABEZONA" },
-        { x: 3, y: 11, d: 'v', w: "MONA" },
-        { x: 0, y: 14, d: 'h', w: "TALLERDEINVESTIGACION" },
-        { x: 14, y: 8, d: 'v', w: "AOHARURIDE" },
-        { x: 5, y: 17, d: 'h', w: "MORTALKOMBATX" },
-        { x: 5, y: 17, d: 'v', w: "MOLINA" },
-        { x: 11, y: 13, d: 'v', w: "LICEOENRIQUE" },
-        { x: 18, y: 4, d: 'v', w: "FILM" },
-        { x: 10, y: 10, d: 'h', w: "ONEPIECERED" }
+        { x: 1, y: 3, d: 'h', w: "PEPA" },
+        { x: 0, y: 5, d: 'h', w: "ISIDORACOUSINHO" },
+        { x: 13, y: 1, d: 'v', w: "PLAYABLANCA" },
+        { x: 8, y: 4, d: 'v', w: "MARGARITA" },
+        { x: 5, y: 7, d: 'h', w: "CABEZONA" },
+        { x: 5, y: 7, d: 'v', w: "MONA" },
+        { x: 0, y: 10, d: 'h', w: "TALLERDEINVESTIGACION" },
+        { x: 15, y: 7, d: 'v', w: "AOHARURIDE" },
+        { x: 3, y: 13, d: 'h', w: "MORTALKOMBATX" },
+        { x: 3, y: 13, d: 'v', w: "MOLINA" },
+        { x: 10, y: 12, d: 'v', w: "ENRIQUEMOLINA" },
+        { x: 17, y: 5, d: 'v', w: "REDFILM" }
     ];
 
-    const gridContainer = document.getElementById('grid');
-    const cells = {};
+    const grid = document.getElementById('crossword');
+    const cellMap = {};
 
-    // Crear la malla
-    for(let y=0; y<22; y++) {
-        for(let x=0; x<22; x++) {
-            const input = document.createElement('input');
-            input.classList.add('cell', 'black');
-            input.maxLength = 1;
-            input.disabled = true;
-            gridContainer.appendChild(input);
-            cells[`${x}-${y}`] = input;
+    // Crear malla base
+    for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 20; x++) {
+            const div = document.createElement('div');
+            div.className = 'cell black';
+            grid.appendChild(div);
+            cellMap[`${x}-${y}`] = div;
         }
     }
 
-    // Inicializar palabras
-    words.forEach(wordObj => {
-        const {x, y, d, w} = wordObj;
-        for(let i=0; i<w.length; i++) {
-            const cx = d === 'h' ? x + i : x;
-            const cy = d === 'v' ? y + i : y;
-            const cell = cells[`${cx}-${cy}`];
-            cell.classList.remove('black');
-            cell.disabled = false;
-            cell.dataset.answer = w[i];
-            cell.addEventListener('input', (e) => handleInput(e, cx, cy, d));
+    // Colocar palabras
+    wordData.forEach(data => {
+        for (let i = 0; i < data.w.length; i++) {
+            const cx = data.d === 'h' ? data.x + i : data.x;
+            const cy = data.d === 'v' ? data.y + i : data.y;
+            if (cellMap[`${cx}-${cy}`].tagName !== 'INPUT') {
+                const input = document.createElement('input');
+                input.className = 'cell';
+                input.maxLength = 1;
+                input.dataset.letter = data.w[i];
+                grid.replaceChild(input, cellMap[`${cx}-${cy}`]);
+                cellMap[`${cx}-${cy}`] = input;
+                input.addEventListener('input', checkStatus);
+            }
         }
     });
 
-    function handleInput(e, x, y, d) {
-        const val = e.target.value.toUpperCase();
-        if(val === e.target.dataset.answer) {
-            e.target.classList.add('correct-letter');
-        } else {
-            e.target.classList.remove('correct-letter');
-        }
-        checkProgress();
-    }
-
-    let completedCount = 0;
-    function checkProgress() {
-        let currentCompleted = 0;
-        words.forEach(wordObj => {
-            const {x, y, d, w} = wordObj;
-            let isWordCorrect = true;
-            for(let i=0; i<w.length; i++) {
-                const cx = d === '
+    function checkStatus() {
+        let completed = 0;
+        wordData.forEach(data => {
+            let isCorrect = true;
+            for (let i = 0; i < data.w.length; i++) {
+                const cx = data.d === 'h' ? data.x + i : data.x;
+                const cy = data.d === '
