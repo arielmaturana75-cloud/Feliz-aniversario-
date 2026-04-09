@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crucigrama Interactivo</title>
+    <title>Crucigrama Interconectado</title>
     <style>
         :root { 
             --bg-pastel: #ffe5ec; 
@@ -29,7 +29,7 @@
             justify-content: center;
             align-items: flex-start;
             gap: 20px;
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
 
@@ -48,12 +48,12 @@
 
         h1 { color: var(--accent); margin-top: 0; }
 
-        /* Cuadrícula de 25x30 para evitar que las palabras choquen mal */
+        /* Cuadrícula exacta para que entren las 12 palabras conectadas */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(25, 25px); 
-            grid-template-rows: repeat(30, 25px); 
-            gap: 2px; 
+            grid-template-columns: repeat(26, 25px); 
+            grid-template-rows: repeat(28, 25px); 
+            gap: 1px; 
             background-color: var(--grid-border); 
             padding: 5px;
             border-radius: 8px;
@@ -66,10 +66,10 @@
             background: var(--cell-bg);
             border: 1px solid #fce1e4; 
             text-align: center; text-transform: uppercase;
-            font-weight: bold; font-size: 14px; 
+            font-weight: bold; font-size: 13px; 
             color: var(--text-color); outline: none;
-            border-radius: 3px;
-            transition: all 0.3s ease;
+            border-radius: 2px;
+            transition: all 0.2s ease;
         }
 
         .cell.correct { 
@@ -78,10 +78,10 @@
             border-color: #166534 !important; 
         }
         
-        .cell:focus { background: #ffc2d1; }
+        .cell:focus { background: #ffc2d1; transform: scale(1.1); z-index: 10; position: relative;}
         .black { background: transparent !important; border: none !important; }
 
-        /* Caja de Recompensa */
+        /* Caja de Recompensa Animada */
         #reward-box {
             margin-top: 25px; 
             padding: 20px; 
@@ -112,13 +112,13 @@
         </div>
 
         <div class="center-content">
-            <h1>✨ Crucigrama</h1>
+            <h1>✨ Crucigrama de Recuerdos</h1>
             <p>Palabras completadas: <span id="count">0</span> / 12</p>
 
             <div id="crossword" class="grid"></div>
 
             <div id="reward-box">
-                <h3 style="color: var(--accent); margin-top: 0;">🎁 ¡Has desbloqueado un premio!</h3>
+                <h3 style="color: var(--accent); margin-top: 0;">🎁 ¡Has desbloqueado un recuerdo!</h3>
                 <img id="reward-img" src="" alt="Premio">
                 <p id="reward-message"></p>
             </div>
@@ -131,44 +131,45 @@
     </div>
 
 <script>
-    // CONFIGURACIÓN DE LOS PREMIOS (Edita los textos y enlaces aquí)
+    // --- 🛠️ EDITA TUS PREMIOS AQUÍ ---
+    // Cambia los enlaces de las imágenes y los textos que aparecerán
     const rewards = {
         4: {
             img: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?q=80&w=600",
-            text: "¡Excelente inicio!\nAquí tienes tu primer código: INICIO-2026"
+            text: "¡Buen comienzo!\nSigue así para descubrir más sorpresas."
         },
         8: {
             img: "https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=600",
-            text: "¡Ya casi lo logras!\nTu código de nivel medio: MITAD-GIFT"
+            text: "¡Ya casi lo logras!\nHas desbloqueado la segunda etapa."
         },
         12: {
             img: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=600",
-            text: "¡Felicidades, completaste todo!\nTu recompensa máxima: VICTORIA-TOTAL"
+            text: "¡Felicidades, completaste todo el crucigrama!\nAquí tienes tu recompensa final."
         }
     };
 
-    // Coordenadas calculadas estrictamente para que crucen sin errores
+    // --- 🧩 COORDENADAS 100% INTERCONECTADAS ---
     const wordData = [
-        { x: 5, y: 2, d: 'v', w: "PAICAVI" },
-        { x: 5, y: 2, d: 'h', w: "PEPA" },           // Cruza en la P
-        { x: 10, y: 5, d: 'h', w: "CABEZONA" }, 
-        { x: 15, y: 4, d: 'v', w: "MONA" },          // Cruza en la O de Cabezona
-        { x: 5, y: 13, d: 'h', w: "ISIDORACOUSIÑO" },// Incluye la Ñ
-        { x: 5, y: 10, d: 'v', w: "ENRIQUEMOLINA" }, // Cruza en la I de Isidora
-        { x: 12, y: 9, d: 'h', w: "REDFILM" },
-        { x: 3, y: 18, d: 'v', w: "PLAYABLANCA" },
-        { x: 7, y: 18, d: 'h', w: "MARGARITA" },
-        { x: 1, y: 24, d: 'h', w: "TALLERDEINVESTIGACION" }, // Cruza en la L de Playa Blanca
-        { x: 23, y: 10, d: 'v', w: "AOHARURIDE" },
-        { x: 8, y: 28, d: 'h', w: "MORTALKOMBATX" }
+        { x: 3, y: 13, d: 'h', w: "TALLERDEINVESTIGACION" }, 
+        { x: 4, y: 11, d: 'v', w: "PLAYABLANCA" },           // Cruza con TALLER en la A
+        { x: 2, y: 16, d: 'h', w: "CABEZONA" },              // Cruza con PLAYABLANCA en la B
+        { x: 7, y: 15, d: 'v', w: "MONA" },                  // Cruza con CABEZONA en la O
+        { x: 7, y: 4,  d: 'v', w: "AOHARURIDE" },            // Cruza con TALLER en la E
+        { x: 13, y: 8, d: 'v', w: "PAICAVI" },               // Cruza con TALLER en la V
+        { x: 13, y: 8, d: 'h', w: "PEPA" },                  // Cruza con PAICAVI en la P
+        { x: 18, y: 10, d: 'v', w: "MARGARITA" },            // Cruza con TALLER en la G
+        { x: 20, y: 6, d: 'v', w: "ISIDORACOUSIÑO" },        // Cruza con TALLER en la C
+        { x: 10, y: 13, d: 'v', w: "ENRIQUEMOLINA" },        // Cruza con TALLER en la E
+        { x: 10, y: 20, d: 'h', w: "MORTALKOMBATX" },        // Cruza con ENRIQUEMOLINA en la M
+        { x: 6, y: 23, d: 'h', w: "REDFILM" }                // Cruza con ENRIQUEMOLINA en la I
     ];
 
     const gridContainer = document.getElementById('crossword');
     const cellMap = {};
 
-    // 1. Crear fondo (25x30)
-    for (let y = 0; y < 30; y++) {
-        for (let x = 0; x < 25; x++) {
+    // 1. Crear el fondo oscuro de la malla (26 columnas x 28 filas)
+    for (let y = 0; y < 28; y++) {
+        for (let x = 0; x < 26; x++) {
             const empty = document.createElement('div');
             empty.className = 'cell black';
             gridContainer.appendChild(empty);
@@ -176,7 +177,7 @@
         }
     }
 
-    // 2. Colocar casillas
+    // 2. Tallar las palabras en la malla
     wordData.forEach(wordObj => {
         for (let i = 0; i < wordObj.w.length; i++) {
             const cx = wordObj.d === 'h' ? wordObj.x + i : wordObj.x;
@@ -218,21 +219,21 @@
 
         document.getElementById('count').innerText = totalCompleted;
 
-        // Mostrar premio exacto en 4, 8 y 12
+        // Mostrar premio al llegar exactamente a 4, 8 y 12 palabras
         if (totalCompleted === 4 || totalCompleted === 8 || totalCompleted === 12) {
-            // Solo actualiza si acabas de llegar a un nivel nuevo
             if (totalCompleted !== currentTier) {
                 currentTier = totalCompleted;
                 const rewardBox = document.getElementById('reward-box');
                 const rewardImg = document.getElementById('reward-img');
                 const rewardMsg = document.getElementById('reward-message');
 
+                // Cargar imagen y texto desde la configuración inicial
                 rewardImg.src = rewards[totalCompleted].img;
                 rewardMsg.innerText = rewards[totalCompleted].text;
                 
                 rewardBox.style.display = 'block';
                 
-                // Reiniciar animación para que haga el efecto "Pop" cada vez que cambie
+                // Reiniciar animación para que llame la atención al cambiar
                 rewardBox.style.animation = 'none';
                 setTimeout(() => { rewardBox.style.animation = 'popIn 0.5s ease-out'; }, 10);
             }
