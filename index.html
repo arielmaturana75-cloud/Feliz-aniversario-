@@ -6,11 +6,11 @@
     <title>Crucigrama Interactivo</title>
     <style>
         :root { 
-            --bg-pastel: #ffe5ec; /* Fondo Rosa Pastel */
+            --bg-pastel: #ffe5ec; 
             --grid-border: #ffb3c1; 
             --cell-bg: #ffffff;
             --accent: #fb6f92;
-            --success-green: #22c55e; /* Verde brillante para las correctas */
+            --success-green: #22c55e;
             --text-color: #594157;
         }
 
@@ -23,7 +23,6 @@
             text-align: center;
         }
 
-        /* Estructura de 3 columnas para PC */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -34,19 +33,9 @@
             margin: 0 auto;
         }
 
-        /* Espacios laterales para imágenes */
-        .side-image {
-            flex: 1;
-            max-width: 250px;
-        }
+        .side-image { flex: 1; max-width: 250px; }
+        .side-image img { width: 100%; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        .side-image img {
-            width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        /* Contenedor central del crucigrama */
         .center-content {
             flex: 2;
             background: rgba(255, 255, 255, 0.6); 
@@ -59,11 +48,11 @@
 
         h1 { color: var(--accent); margin-top: 0; }
 
-        /* Cuadrícula ampliada para que quepa "Taller de investigación" */
+        /* Cuadrícula de 25x30 para evitar que las palabras choquen mal */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(23, 28px); 
-            grid-template-rows: repeat(23, 28px); 
+            grid-template-columns: repeat(25, 25px); 
+            grid-template-rows: repeat(30, 25px); 
             gap: 2px; 
             background-color: var(--grid-border); 
             padding: 5px;
@@ -73,61 +62,41 @@
         }
 
         .cell {
-            width: 28px; height: 28px; 
+            width: 25px; height: 25px; 
             background: var(--cell-bg);
             border: 1px solid #fce1e4; 
             text-align: center; text-transform: uppercase;
-            font-weight: bold; font-size: 15px; 
+            font-weight: bold; font-size: 14px; 
             color: var(--text-color); outline: none;
             border-radius: 3px;
             transition: all 0.3s ease;
         }
 
-        /* EL COLOR VERDE PARA LAS RESPUESTAS CORRECTAS */
         .cell.correct { 
             background-color: var(--success-green) !important; 
             color: #ffffff !important; 
             border-color: #166534 !important; 
-            transform: scale(1.05);
         }
         
         .cell:focus { background: #ffc2d1; }
         .black { background: transparent !important; border: none !important; }
 
-        /* Caja de Recompensa (Imagen + Texto) */
+        /* Caja de Recompensa */
         #reward-box {
             margin-top: 25px; 
             padding: 20px; 
             border: 3px dashed var(--accent);
             background: #fff; 
             border-radius: 15px;
-            display: none; /* Oculto hasta tener 3 palabras */
+            display: none; 
             animation: popIn 0.5s ease-out;
         }
 
-        #reward-box img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
+        #reward-img { max-width: 100%; border-radius: 10px; margin-bottom: 15px; }
+        #reward-message { font-size: 16px; font-weight: bold; color: var(--text-color); margin: 0; white-space: pre-line; }
 
-        #reward-box textarea {
-            width: 90%;
-            height: 60px;
-            padding: 10px;
-            border: 2px solid var(--grid-border);
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 14px;
-            resize: none;
-        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Adaptación para celulares */
         @media (max-width: 900px) {
             .main-layout { flex-direction: column; align-items: center; }
             .side-image { max-width: 100%; margin-bottom: 20px; }
@@ -149,9 +118,9 @@
             <div id="crossword" class="grid"></div>
 
             <div id="reward-box">
-                <h3 style="color: var(--accent); margin-top: 0;">🎁 ¡Desbloqueaste un recuerdo!</h3>
-                <img src="https://images.unsplash.com/photo-1513201099705-a9746e1e201f?q=80&w=600" alt="Premio">
-                <textarea placeholder="Escribe aquí tu mensaje, código o dedicatoria..."></textarea>
+                <h3 style="color: var(--accent); margin-top: 0;">🎁 ¡Has desbloqueado un premio!</h3>
+                <img id="reward-img" src="" alt="Premio">
+                <p id="reward-message"></p>
             </div>
         </div>
 
@@ -162,28 +131,44 @@
     </div>
 
 <script>
-    // Palabras programadas para que se crucen perfectamente
+    // CONFIGURACIÓN DE LOS PREMIOS (Edita los textos y enlaces aquí)
+    const rewards = {
+        4: {
+            img: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?q=80&w=600",
+            text: "¡Excelente inicio!\nAquí tienes tu primer código: INICIO-2026"
+        },
+        8: {
+            img: "https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=600",
+            text: "¡Ya casi lo logras!\nTu código de nivel medio: MITAD-GIFT"
+        },
+        12: {
+            img: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=600",
+            text: "¡Felicidades, completaste todo!\nTu recompensa máxima: VICTORIA-TOTAL"
+        }
+    };
+
+    // Coordenadas calculadas estrictamente para que crucen sin errores
     const wordData = [
-        { x: 2, y: 2, d: 'v', w: "PAICAVI" },
-        { x: 2, y: 2, d: 'h', w: "PEPA" },
-        { x: 0, y: 6, d: 'h', w: "PLAYABLANCA" }, 
-        { x: 2, y: 8, d: 'h', w: "ISIDORACOUSINHO" },
-        { x: 10, y: 5, d: 'v', w: "MARGARITA" }, 
-        { x: 5, y: 11, d: 'h', w: "CABEZONA" },
-        { x: 5, y: 11, d: 'v', w: "MONA" }, 
-        { x: 1, y: 14, d: 'h', w: "TALLERDEINVESTIGACION" },
-        { x: 17, y: 10, d: 'v', w: "AOHARURIDE" },
-        { x: 2, y: 17, d: 'h', w: "MORTALKOMBATX" },
-        { x: 19, y: 2, d: 'v', w: "ENRIQUEMOLINA" },
-        { x: 21, y: 10, d: 'v', w: "REDFILM" }
+        { x: 5, y: 2, d: 'v', w: "PAICAVI" },
+        { x: 5, y: 2, d: 'h', w: "PEPA" },           // Cruza en la P
+        { x: 10, y: 5, d: 'h', w: "CABEZONA" }, 
+        { x: 15, y: 4, d: 'v', w: "MONA" },          // Cruza en la O de Cabezona
+        { x: 5, y: 13, d: 'h', w: "ISIDORACOUSIÑO" },// Incluye la Ñ
+        { x: 5, y: 10, d: 'v', w: "ENRIQUEMOLINA" }, // Cruza en la I de Isidora
+        { x: 12, y: 9, d: 'h', w: "REDFILM" },
+        { x: 3, y: 18, d: 'v', w: "PLAYABLANCA" },
+        { x: 7, y: 18, d: 'h', w: "MARGARITA" },
+        { x: 1, y: 24, d: 'h', w: "TALLERDEINVESTIGACION" }, // Cruza en la L de Playa Blanca
+        { x: 23, y: 10, d: 'v', w: "AOHARURIDE" },
+        { x: 8, y: 28, d: 'h', w: "MORTALKOMBATX" }
     ];
 
     const gridContainer = document.getElementById('crossword');
     const cellMap = {};
 
-    // 1. Crear fondo (23x23)
-    for (let y = 0; y < 23; y++) {
-        for (let x = 0; x < 23; x++) {
+    // 1. Crear fondo (25x30)
+    for (let y = 0; y < 30; y++) {
+        for (let x = 0; x < 25; x++) {
             const empty = document.createElement('div');
             empty.className = 'cell black';
             gridContainer.appendChild(empty);
@@ -191,7 +176,7 @@
         }
     }
 
-    // 2. Colocar casillas para escribir
+    // 2. Colocar casillas
     wordData.forEach(wordObj => {
         for (let i = 0; i < wordObj.w.length; i++) {
             const cx = wordObj.d === 'h' ? wordObj.x + i : wordObj.x;
@@ -208,6 +193,8 @@
             }
         }
     });
+
+    let currentTier = 0;
 
     function checkProgress() {
         let totalCompleted = 0;
@@ -231,9 +218,24 @@
 
         document.getElementById('count').innerText = totalCompleted;
 
-        // Mostrar la caja de imagen interactiva al lograr 3 palabras
-        if (totalCompleted >= 3) {
-            document.getElementById('reward-box').style.display = 'block';
+        // Mostrar premio exacto en 4, 8 y 12
+        if (totalCompleted === 4 || totalCompleted === 8 || totalCompleted === 12) {
+            // Solo actualiza si acabas de llegar a un nivel nuevo
+            if (totalCompleted !== currentTier) {
+                currentTier = totalCompleted;
+                const rewardBox = document.getElementById('reward-box');
+                const rewardImg = document.getElementById('reward-img');
+                const rewardMsg = document.getElementById('reward-message');
+
+                rewardImg.src = rewards[totalCompleted].img;
+                rewardMsg.innerText = rewards[totalCompleted].text;
+                
+                rewardBox.style.display = 'block';
+                
+                // Reiniciar animación para que haga el efecto "Pop" cada vez que cambie
+                rewardBox.style.animation = 'none';
+                setTimeout(() => { rewardBox.style.animation = 'popIn 0.5s ease-out'; }, 10);
+            }
         }
     }
 </script>
