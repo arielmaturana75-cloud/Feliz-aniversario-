@@ -2,73 +2,121 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Crucigrama con Premios</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crucigrama Especial</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(3, 40px); gap: 5px; justify-content: center; margin-top: 20px; }
-        input { width: 40px; height: 40px; text-align: center; text-transform: uppercase; font-weight: bold; border: 2px solid #ccc; font-size: 20px; }
-        .correct { background-color: #d4edda !important; border-color: #28a745 !important; }
-        #ticket { margin-top: 30px; padding: 20px; background: #fff3cd; border: 2px dashed #ffc107; border-radius: 10px; display: inline-block; }
-        .hidden { display: none !important; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; color: white; text-align: center; }
+        .container { max-width: 900px; margin: auto; background: #ecf0f1; padding: 20px; border-radius: 15px; color: #333; }
+        .grid { display: grid; grid-template-columns: repeat(25, 25px); grid-template-rows: repeat(25, 25px); gap: 1px; justify-content: center; background: #bdc3c7; border: 2px solid #7f8c8d; margin: 20px auto; overflow: auto; }
+        .cell { width: 25px; height: 25px; background: white; border: 1px solid #eee; text-align: center; text-transform: uppercase; font-size: 14px; font-weight: bold; line-height: 25px; outline: none; }
+        .cell:disabled { background: #fff; color: #2ecc71; border: 1px solid #2ecc71; }
+        .black { background: #2c3e50; border: none; }
+        #ticket { margin-top: 20px; padding: 15px; background: #f1c40f; border: 3px dashed #d35400; border-radius: 10px; color: #d35400; font-weight: bold; }
+        .hidden { display: none; }
+        .stats { margin-bottom: 10px; font-size: 1.2em; }
     </style>
 </head>
 <body>
 
-    <h1>🧩 Crucigrama de Premios</h1>
-    <p>Palabras completadas: <span id="count">0</span>/1</p>
-    <p><small>(Escribe "SOL" para probar el primer ticket)</small></p>
-
-    <div class="grid">
-        <input type="text" maxlength="1" data-word="word1" data-letter="S">
-        <input type="text" maxlength="1" data-word="word1" data-letter="O">
-        <input type="text" maxlength="1" data-word="word1" data-letter="L">
-    </div>
+<div class="container">
+    <h1>🧩 Mi Crucigrama Personalizado</h1>
+    <div class="stats">Palabras: <span id="count">0</span> / 15</div>
+    
+    <div id="crossword" class="grid">
+        </div>
 
     <div id="reward-area">
         <div id="ticket" class="hidden">
-            <h3>¡Felicidades! 🎟️</h3>
-            <p>Has desbloqueado un cupón: <strong>CANJE-EXITO-2026</strong></p>
+            🎉 ¡TICKET DESBLOQUEADO! 🎉<br>
+            Código: <span id="ticket-code">PROMO-CHILE-2026</span>
         </div>
     </div>
+</div>
 
-    <script>
-        const inputs = document.querySelectorAll('input');
-        const ticket = document.getElementById('ticket');
-        const countDisplay = document.getElementById('count');
-        let completedWords = new Set();
+<script>
+    // Configuración de palabras y posiciones (x, y, dirección, palabra)
+    const wordsConfig = [
+        { x: 5, y: 2, d: 'h', w: "PEPA" },
+        { x: 5, y: 2, d: 'v', w: "PAICAVI" },
+        { x: 2, y: 5, d: 'h', w: "PARQUEISIDORA" },
+        { x: 8, y: 5, d: 'v', w: "ISIDORA" }, // Parte de la anterior
+        { x: 10, y: 2, d: 'v', w: "COUSINHO" },
+        { x: 1, y: 10, d: 'h', w: "PLAYABLANCA" },
+        { x: 12, y: 8, d: 'v', w: "MARGARITA" },
+        { x: 4, y: 12, d: 'h', w: "CABEZONA" },
+        { x: 4, y: 12, d: 'v', w: "MONA" },
+        { x: 0, y: 15, d: 'h', w: "TALLERDEINVESTIGACION" },
+        { x: 15, y: 10, d: 'v', w: "AOHARURIDE" },
+        { x: 5, y: 18, d: 'h', w: "MORTALKOMBATX" },
+        { x: 5, y: 18, d: 'v', w: "MOLINA" },
+        { x: 10, y: 15, d: 'v', w: "LICEOENRIQUE" },
+        { x: 18, y: 5, d: 'v', w: "FILM" },
+        { x: 20, y: 10, d: 'h', w: "ONEPIECERED" }
+    ];
 
-        inputs.forEach(input => {
-            input.addEventListener('input', () => {
-                const wordId = input.getAttribute('data-word');
-                const sameWordInputs = document.querySelectorAll(`input[data-word="${wordId}"]`);
-                
-                let isFull = true;
-                let currentWord = "";
-                
-                sameWordInputs.forEach(i => {
-                    currentWord += i.value.toUpperCase();
-                    if (i.value.toUpperCase() !== i.getAttribute('data-letter')) isFull = false;
-                });
+    const gridEl = document.getElementById('crossword');
+    const cells = {};
 
-                if (isFull && !completedWords.has(wordId)) {
-                    completedWords.add(wordId);
-                    sameWordInputs.forEach(i => {
-                        i.classList.add('correct');
-                        i.disabled = true;
-                    });
-                    updateCounter();
-                }
-            });
-        });
-
-        function updateCounter() {
-            const count = completedWords.size;
-            countDisplay.innerText = count;
-            // Para esta prueba, se desbloquea con la primera palabra (SOL)
-            if (count >= 1) {
-                ticket.classList.remove('hidden');
-            }
+    // Crear cuadricula negra
+    for(let y=0; y<25; y++) {
+        for(let x=0; x<25; x++) {
+            const el = document.createElement('input');
+            el.classList.add('cell', 'black');
+            el.maxLength = 1;
+            el.disabled = true;
+            gridEl.appendChild(el);
+            cells[`${x}-${y}`] = el;
         }
-    </script>
+    }
+
+    // Colocar las palabras
+    wordsConfig.forEach((config, idx) => {
+        const word = config.w.replace(/\s/g, ''); // Quitar espacios para la lógica
+        for(let i=0; i<word.length; i++) {
+            const nx = config.d === 'h' ? config.x + i : config.x;
+            const ny = config.d === 'v' ? config.y + i : config.y;
+            const cell = cells[`${nx}-${ny}`];
+            cell.classList.remove('black');
+            cell.disabled = false;
+            cell.setAttribute('data-ans', word[i]);
+            cell.addEventListener('input', checkWords);
+        }
+    });
+
+    let wordsFound = new Set();
+
+    function checkWords() {
+        wordsConfig.forEach((config, idx) => {
+            const word = config.w.replace(/\s/g, '');
+            let correct = true;
+            for(let i=0; i<word.length; i++) {
+                const nx = config.d === 'h' ? config.x + i : config.x;
+                const ny = config.d === 'v' ? config.y + i : config.y;
+                if(cells[`${nx}-${ny}`].value.toUpperCase() !== word[i]) correct = false;
+            }
+            
+            if(correct && !wordsFound.has(idx)) {
+                wordsFound.add(idx);
+                // Bloquear celdas de la palabra
+                for(let i=0; i<word.length; i++) {
+                    const nx = config.d === 'h' ? config.x + i : config.x;
+                    const ny = config.d === 'v' ? config.y + i : config.y;
+                    cells[`${nx}-${ny}`].disabled = true;
+                }
+                updateUI();
+            }
+        });
+    }
+
+    function updateUI() {
+        const count = wordsFound.size;
+        document.getElementById('count').innerText = count;
+        if(count > 0 && count % 3 === 0) {
+            document.getElementById('ticket').classList.remove('hidden');
+            // Cambiar el código del ticket cada 3 palabras si quieres
+            document.getElementById('ticket-code').innerText = "TICKET-NIVEL-" + (count/3);
+        }
+    }
+</script>
 </body>
 </html>
