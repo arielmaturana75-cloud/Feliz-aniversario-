@@ -99,4 +99,68 @@
         { x: 16, y: 7, d: 'v', w: "AOHARURIDE" },
         { x: 4, y: 13, d: 'h', w: "MORTALKOMBATX" },
         { x: 10, y: 11, d: 'v', w: "ENRIQUEMOLINA" },
-        { x: 18, y: 4, d: 'v', w: "REDFIL
+        { x: 18, y: 4, d: 'v', w: "REDFILM" }
+    ];
+
+    const gridContainer = document.getElementById('crossword');
+    const cellMap = {};
+
+    // 1. Crear fondo de la cuadrícula
+    for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 20; x++) {
+            const empty = document.createElement('div');
+            empty.className = 'cell black';
+            gridContainer.appendChild(empty);
+            cellMap[`${x}-${y}`] = empty;
+        }
+    }
+
+    // 2. Colocar los inputs de las palabras
+    wordData.forEach(wordObj => {
+        for (let i = 0; i < wordObj.w.length; i++) {
+            const cx = wordObj.d === 'h' ? wordObj.x + i : wordObj.x;
+            const cy = wordObj.d === 'v' ? wordObj.y + i : wordObj.y;
+            
+            if (cellMap[`${cx}-${cy}`].tagName !== 'INPUT') {
+                const input = document.createElement('input');
+                input.className = 'cell';
+                input.maxLength = 1;
+                input.dataset.letter = wordObj.w[i];
+                gridContainer.replaceChild(input, cellMap[`${cx}-${cy}`]);
+                cellMap[`${cx}-${cy}`] = input;
+                input.addEventListener('input', checkProgress);
+            }
+        }
+    });
+
+    function checkProgress() {
+        let totalCompleted = 0;
+
+        wordData.forEach(wordObj => {
+            let isWordCorrect = true;
+            for (let i = 0; i < wordObj.w.length; i++) {
+                const cx = wordObj.d === 'h' ? wordObj.x + i : wordObj.x;
+                const cy = wordObj.d === 'v' ? wordObj.y + i : wordObj.y;
+                const cell = cellMap[`${cx}-${cy}`];
+
+                if (cell.value.toUpperCase() !== wordObj.w[i]) {
+                    isWordCorrect = false;
+                    cell.classList.remove('correct');
+                } else {
+                    cell.classList.add('correct');
+                }
+            }
+            if (isWordCorrect) totalCompleted++;
+        });
+
+        document.getElementById('count').innerText = totalCompleted;
+
+        if (totalCompleted > 0 && totalCompleted % 3 === 0) {
+            const rewardBox = document.getElementById('reward-box');
+            rewardBox.style.display = 'block';
+            document.getElementById('ticket-text').innerText = `Código: PASTEL-GIFT-${totalCompleted}`;
+        }
+    }
+</script>
+</body>
+</html>
