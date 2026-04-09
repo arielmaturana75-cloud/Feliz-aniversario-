@@ -3,120 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crucigrama Especial</title>
+    <title>Crucigrama Interactivo</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; color: white; text-align: center; }
-        .container { max-width: 900px; margin: auto; background: #ecf0f1; padding: 20px; border-radius: 15px; color: #333; }
-        .grid { display: grid; grid-template-columns: repeat(25, 25px); grid-template-rows: repeat(25, 25px); gap: 1px; justify-content: center; background: #bdc3c7; border: 2px solid #7f8c8d; margin: 20px auto; overflow: auto; }
-        .cell { width: 25px; height: 25px; background: white; border: 1px solid #eee; text-align: center; text-transform: uppercase; font-size: 14px; font-weight: bold; line-height: 25px; outline: none; }
-        .cell:disabled { background: #fff; color: #2ecc71; border: 1px solid #2ecc71; }
-        .black { background: #2c3e50; border: none; }
-        #ticket { margin-top: 20px; padding: 15px; background: #f1c40f; border: 3px dashed #d35400; border-radius: 10px; color: #d35400; font-weight: bold; }
-        .hidden { display: none; }
-        .stats { margin-bottom: 10px; font-size: 1.2em; }
+        :root {
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --accent: #e94560;
+            --correct: #0f3460;
+            --text: #ffffff;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        .header-img { width: 100%; max-width: 600px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .container { background: var(--panel); padding: 30px; border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(22, 28px); 
+            grid-template-rows: repeat(22, 28px); 
+            gap: 2px; 
+            background: #0f3460;
+            padding: 5px;
+            border-radius: 5px;
+            overflow: auto;
+            max-width: 90vw;
+        }
+
+        .cell {
+            width: 28px; height: 28px; background: #fff; border: none;
+            text-align: center; text-transform: uppercase; font-weight: bold;
+            font-size: 16px; color: #333; transition: 0.3s;
+        }
+
+        .cell:focus { background: #ffd369; outline: none; }
+        .cell.correct-letter { background: #4ecca3 !important; color: white; }
+        .black { background: transparent !important; }
+
+        #reward-panel {
+            margin-top: 20px; padding: 20px; border: 2px solid var(--accent);
+            border-radius: 15px; background: rgba(233, 69, 96, 0.1);
+            display: none; animation: fadeIn 0.5s;
+        }
+
+        .reward-img { width: 150px; height: auto; margin: 10px; border-radius: 10px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🧩 Mi Crucigrama Personalizado</h1>
-    <div class="stats">Palabras: <span id="count">0</span> / 15</div>
-    
-    <div id="crossword" class="grid">
-        </div>
+    <img src="https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=1000" class="header-img" alt="Banner">
 
-    <div id="reward-area">
-        <div id="ticket" class="hidden">
-            🎉 ¡TICKET DESBLOQUEADO! 🎉<br>
-            Código: <span id="ticket-code">PROMO-CHILE-2026</span>
+    <div class="container">
+        <h1>🧩 Crucigrama de Desafíos</h1>
+        <p>Palabras completadas: <span id="count">0</span> / 15</p>
+
+        <div id="grid" class="grid"></div>
+
+        <div id="reward-panel">
+            <h3>🎁 ¡NUEVA RECOMPENSA!</h3>
+            <p id="reward-text"></p>
+            <img src="https://cdn-icons-png.flaticon.com/512/6941/6941697.png" class="reward-img">
         </div>
     </div>
-</div>
 
 <script>
-    // Configuración de palabras y posiciones (x, y, dirección, palabra)
-    const wordsConfig = [
-        { x: 5, y: 2, d: 'h', w: "PEPA" },
-        { x: 5, y: 2, d: 'v', w: "PAICAVI" },
-        { x: 2, y: 5, d: 'h', w: "PARQUEISIDORA" },
-        { x: 8, y: 5, d: 'v', w: "ISIDORA" }, // Parte de la anterior
-        { x: 10, y: 2, d: 'v', w: "COUSINHO" },
-        { x: 1, y: 10, d: 'h', w: "PLAYABLANCA" },
-        { x: 12, y: 8, d: 'v', w: "MARGARITA" },
-        { x: 4, y: 12, d: 'h', w: "CABEZONA" },
-        { x: 4, y: 12, d: 'v', w: "MONA" },
-        { x: 0, y: 15, d: 'h', w: "TALLERDEINVESTIGACION" },
-        { x: 15, y: 10, d: 'v', w: "AOHARURIDE" },
-        { x: 5, y: 18, d: 'h', w: "MORTALKOMBATX" },
-        { x: 5, y: 18, d: 'v', w: "MOLINA" },
-        { x: 10, y: 15, d: 'v', w: "LICEOENRIQUE" },
-        { x: 18, y: 5, d: 'v', w: "FILM" },
-        { x: 20, y: 10, d: 'h', w: "ONEPIECERED" }
+    const words = [
+        { x: 2, y: 1, d: 'h', w: "PEPA" },
+        { x: 2, y: 1, d: 'v', w: "PAICAVI" },
+        { x: 0, y: 4, d: 'h', w: "PARQUEISIDORA" },
+        { x: 7, y: 1, d: 'v', w: "COUSINHO" },
+        { x: 0, y: 8, d: 'h', w: "PLAYABLANCA" },
+        { x: 10, y: 5, d: 'v', w: "MARGARITA" },
+        { x: 3, y: 11, d: 'h', w: "CABEZONA" },
+        { x: 3, y: 11, d: 'v', w: "MONA" },
+        { x: 0, y: 14, d: 'h', w: "TALLERDEINVESTIGACION" },
+        { x: 14, y: 8, d: 'v', w: "AOHARURIDE" },
+        { x: 5, y: 17, d: 'h', w: "MORTALKOMBATX" },
+        { x: 5, y: 17, d: 'v', w: "MOLINA" },
+        { x: 11, y: 13, d: 'v', w: "LICEOENRIQUE" },
+        { x: 18, y: 4, d: 'v', w: "FILM" },
+        { x: 10, y: 10, d: 'h', w: "ONEPIECERED" }
     ];
 
-    const gridEl = document.getElementById('crossword');
+    const gridContainer = document.getElementById('grid');
     const cells = {};
 
-    // Crear cuadricula negra
-    for(let y=0; y<25; y++) {
-        for(let x=0; x<25; x++) {
-            const el = document.createElement('input');
-            el.classList.add('cell', 'black');
-            el.maxLength = 1;
-            el.disabled = true;
-            gridEl.appendChild(el);
-            cells[`${x}-${y}`] = el;
+    // Crear la malla
+    for(let y=0; y<22; y++) {
+        for(let x=0; x<22; x++) {
+            const input = document.createElement('input');
+            input.classList.add('cell', 'black');
+            input.maxLength = 1;
+            input.disabled = true;
+            gridContainer.appendChild(input);
+            cells[`${x}-${y}`] = input;
         }
     }
 
-    // Colocar las palabras
-    wordsConfig.forEach((config, idx) => {
-        const word = config.w.replace(/\s/g, ''); // Quitar espacios para la lógica
-        for(let i=0; i<word.length; i++) {
-            const nx = config.d === 'h' ? config.x + i : config.x;
-            const ny = config.d === 'v' ? config.y + i : config.y;
-            const cell = cells[`${nx}-${ny}`];
+    // Inicializar palabras
+    words.forEach(wordObj => {
+        const {x, y, d, w} = wordObj;
+        for(let i=0; i<w.length; i++) {
+            const cx = d === 'h' ? x + i : x;
+            const cy = d === 'v' ? y + i : y;
+            const cell = cells[`${cx}-${cy}`];
             cell.classList.remove('black');
             cell.disabled = false;
-            cell.setAttribute('data-ans', word[i]);
-            cell.addEventListener('input', checkWords);
+            cell.dataset.answer = w[i];
+            cell.addEventListener('input', (e) => handleInput(e, cx, cy, d));
         }
     });
 
-    let wordsFound = new Set();
-
-    function checkWords() {
-        wordsConfig.forEach((config, idx) => {
-            const word = config.w.replace(/\s/g, '');
-            let correct = true;
-            for(let i=0; i<word.length; i++) {
-                const nx = config.d === 'h' ? config.x + i : config.x;
-                const ny = config.d === 'v' ? config.y + i : config.y;
-                if(cells[`${nx}-${ny}`].value.toUpperCase() !== word[i]) correct = false;
-            }
-            
-            if(correct && !wordsFound.has(idx)) {
-                wordsFound.add(idx);
-                // Bloquear celdas de la palabra
-                for(let i=0; i<word.length; i++) {
-                    const nx = config.d === 'h' ? config.x + i : config.x;
-                    const ny = config.d === 'v' ? config.y + i : config.y;
-                    cells[`${nx}-${ny}`].disabled = true;
-                }
-                updateUI();
-            }
-        });
-    }
-
-    function updateUI() {
-        const count = wordsFound.size;
-        document.getElementById('count').innerText = count;
-        if(count > 0 && count % 3 === 0) {
-            document.getElementById('ticket').classList.remove('hidden');
-            // Cambiar el código del ticket cada 3 palabras si quieres
-            document.getElementById('ticket-code').innerText = "TICKET-NIVEL-" + (count/3);
+    function handleInput(e, x, y, d) {
+        const val = e.target.value.toUpperCase();
+        if(val === e.target.dataset.answer) {
+            e.target.classList.add('correct-letter');
+        } else {
+            e.target.classList.remove('correct-letter');
         }
+        checkProgress();
     }
-</script>
-</body>
-</html>
+
+    let completedCount = 0;
+    function checkProgress() {
+        let currentCompleted = 0;
+        words.forEach(wordObj => {
+            const {x, y, d, w} = wordObj;
+            let isWordCorrect = true;
+            for(let i=0; i<w.length; i++) {
+                const cx = d === '
