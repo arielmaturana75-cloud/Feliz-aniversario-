@@ -33,8 +33,19 @@
             margin: 0 auto;
         }
 
-        .side-image { flex: 1; max-width: 250px; }
-        .side-image img { width: 100%; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .side-image { 
+            flex: 1; 
+            max-width: 250px; 
+            display: flex;             /* Le decimos que sea un contenedor flexible */
+            flex-direction: column;    /* Que apile los elementos hacia abajo */
+            gap: 20px;                 /* El espacio exacto entre cada foto */
+        }
+        
+        .side-image img { 
+            width: 100%; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+        }
 
         .center-content {
             flex: 2;
@@ -108,7 +119,9 @@
     <div class="main-layout">
         
         <div class="side-image">
-            <img src="izq.jpeg" alt="Decoración Izquierda">
+            <img src="izq.jpeg" alt="Decoración Izquierda1">
+            <img src="cent1.jpeg" alt="Decoración Izquierda2">
+            <img src="aba1.jpeg" alt="Decoración Izquierda3">
         </div>
 
         <div class="center-content">
@@ -141,7 +154,9 @@
         </div>
 
         <div class="side-image">
-            <img src="der.jpeg" alt="Decoración Derecha">
+            <img src="der.jpeg" alt="Decoración Derecha1">
+            <img src="cent2.jpeg" alt="Decoración Derecha2">
+            <img src="aba2.jpeg" alt="Decoración Derecha3">
         </div>
 
     </div>
